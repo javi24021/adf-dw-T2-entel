@@ -192,7 +192,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/pipeline_silver_datos')]",
+			"name": "[concat(parameters('factoryName'), '/pipeline_silver')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -260,6 +260,43 @@
 							},
 							"traceLevel": "Fine"
 						}
+					},
+					{
+						"name": "Data flow2",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Data flow1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_llamadas",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source1": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
 					}
 				],
 				"policy": {
@@ -272,7 +309,8 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_sql_dw_entel')]",
-				"[concat(variables('factoryId'), '/dataflows/df_silver_datos')]"
+				"[concat(variables('factoryId'), '/dataflows/df_silver_datos')]",
+				"[concat(variables('factoryId'), '/dataflows/df_silver_llamadas')]"
 			]
 		},
 		{
@@ -647,6 +685,333 @@
 				"typeProperties": {
 					"schema": "bronze",
 					"table": "05"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_dw_entel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_gold_dim_fecha')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sql_dw_entel",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "GOLD"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id_fecha",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "fecha",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_fecha"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_dw_entel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_gold_dim_hechos_datos')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sql_dw_entel",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "GOLD"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id_datos",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "subidos",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "descargados",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "total",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_fecha_inicio",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_fecha_fin",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_numero",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_radiobase",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "hechos_datos"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_dw_entel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_gold_dim_hechos_llamadas')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sql_dw_entel",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "GOLD"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id_llamada",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "duracion",
+						"type": "time",
+						"scale": 7
+					},
+					{
+						"name": "id_servicio",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_registro",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_numera_a",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_radiobase_a",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_numero_b",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_radiobase_b",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "id_fecha",
+						"type": "int",
+						"precision": 10
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "hechos_llamadas"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_dw_entel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_gold_dim_numero')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sql_dw_entel",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "GOLD"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id_numero",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "numero",
+						"type": "nvarchar"
+					},
+					{
+						"name": "imei",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_numero"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_dw_entel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_gold_dim_radiobase')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sql_dw_entel",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "GOLD"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id_radiobase",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "radiobase",
+						"type": "nvarchar"
+					},
+					{
+						"name": "celda",
+						"type": "nvarchar"
+					},
+					{
+						"name": "latitud",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 7
+					},
+					{
+						"name": "longitud",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_radiobase"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_dw_entel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_gold_dim_registro')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sql_dw_entel",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "GOLD"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id_registro",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "registro",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_registro"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_sql_dw_entel')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sql_gold_dim_servicios')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_sql_dw_entel",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "GOLD"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "id_servicio",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "servicio",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "gold",
+					"table": "dim_servicio"
 				}
 			},
 			"dependsOn": [
@@ -1352,6 +1717,151 @@
 				"[concat(variables('factoryId'), '/datasets/ds_sql_05')]",
 				"[concat(variables('factoryId'), '/datasets/ls_sql_06')]",
 				"[concat(variables('factoryId'), '/datasets/ls_sql_silver_datos')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_llamadas')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "SILVER"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_sql_03",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ls_sql_silver_llamadas",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "cast1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "cast2"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "derivedColumn3"
+						},
+						{
+							"name": "cast3"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          servicio as string,",
+						"          registro as string,",
+						"          numero_a as string,",
+						"          imei_a as string,",
+						"          rbs_utilizada_a as string,",
+						"          celda_a as string,",
+						"          latitud_longitud_a as string,",
+						"          numero_b as string,",
+						"          imei_b as string,",
+						"          rbs_utilizada_b as string,",
+						"          celda_b as string,",
+						"          latitud_longitud_b as string,",
+						"          fecha as string,",
+						"          duracion as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> source1",
+						"source1 cast(output(",
+						"          fecha as timestamp 'dd-MM-yyyy HH:mm:ss'",
+						"     ),",
+						"     errors: true) ~> cast1",
+						"cast1 derive(duracion = replace(duracion, '-', '00:00:00'),",
+						"          latitud_longitud_a = iif(latitud_longitud_a == '-','-0.0,-0.0', latitud_longitud_a),",
+						"          latitud_longitud_b = iif(latitud_longitud_b == '-','-0.0,-0.0', latitud_longitud_b)) ~> derivedColumn1",
+						"derivedColumn1 cast(output(",
+						"          duracion as timestamp 'HH:mm:ss'",
+						"     ),",
+						"     errors: true) ~> cast2",
+						"cast2 derive(Latitud_a = substring(latitud_longitud_a, 0, instr(latitud_longitud_a, \",-\")-1),",
+						"          Longitud_a = substring(latitud_longitud_a,instr(latitud_longitud_a, \",-\")+1,length(latitud_longitud_a))) ~> derivedColumn2",
+						"derivedColumn2 derive(Latitud_b = substring(latitud_longitud_b, 0, instr(latitud_longitud_b, \",-\")-1),",
+						"          Longitud_b = substring(latitud_longitud_b,instr(latitud_longitud_b, \",-\")+1,length(latitud_longitud_b))) ~> derivedColumn3",
+						"derivedColumn3 cast(output(",
+						"          Latitud_a as decimal(10,7),",
+						"          Longitud_a as decimal(10,7),",
+						"          Latitud_b as decimal(10,7),",
+						"          Longitud_b as decimal(10,7)",
+						"     ),",
+						"     errors: true) ~> cast3",
+						"cast3 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          servicio as string,",
+						"          registro as string,",
+						"          numero_a as string,",
+						"          imei_a as string,",
+						"          rbs_utilizada_a as string,",
+						"          celda_a as string,",
+						"          latitud_a as decimal(10,7),",
+						"          longitud_a as decimal(10,7),",
+						"          numero_b as string,",
+						"          imei_b as string,",
+						"          rbs_utilizada_b as string,",
+						"          celda_b as string,",
+						"          latitud_b as decimal(10,7),",
+						"          longitud_b as decimal(10,7),",
+						"          fecha as timestamp,",
+						"          duracion as timestamp",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          servicio,",
+						"          registro,",
+						"          numero_a,",
+						"          imei_a,",
+						"          rbs_utilizada_a,",
+						"          celda_a,",
+						"          latitud_a = Latitud_a,",
+						"          longitud_a = Longitud_a,",
+						"          numero_b,",
+						"          imei_b,",
+						"          rbs_utilizada_b,",
+						"          celda_b,",
+						"          latitud_b = Latitud_b,",
+						"          longitud_b = Longitud_b,",
+						"          fecha,",
+						"          duracion",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_03')]",
+				"[concat(variables('factoryId'), '/datasets/ls_sql_silver_llamadas')]"
 			]
 		}
 	]
