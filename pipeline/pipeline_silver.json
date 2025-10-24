@@ -1,5 +1,5 @@
 {
-	"name": "pipeline_silver_datos",
+	"name": "pipeline_silver",
 	"properties": {
 		"activities": [
 			{
@@ -50,6 +50,37 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "df_silver_datos",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Data flow2",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Data flow1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_silver_llamadas",
 						"type": "DataFlowReference"
 					},
 					"compute": {
