@@ -1,0 +1,115 @@
+{
+	"name": "df_gold_dim_radioBase",
+	"properties": {
+		"folder": {
+			"name": "GOLD"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ls_sql_silver_datos",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "ls_sql_silver_llamadas",
+						"type": "DatasetReference"
+					},
+					"name": "LLB"
+				},
+				{
+					"dataset": {
+						"referenceName": "ls_sql_silver_llamadas",
+						"type": "DatasetReference"
+					},
+					"name": "LLA"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_gold_dim_radiobase",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "union1"
+				},
+				{
+					"name": "union2"
+				},
+				{
+					"name": "sort1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          radiobase as string,",
+				"          celda as string,",
+				"          latitud as decimal(10,7),",
+				"          longitud as decimal(10,7)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT \\n    rbs_utilizada as radiobase, \\n    celda, \\n    latitud, \\n    longitud \\nFROM silver.datos',",
+				"     format: 'query') ~> source1",
+				"source(output(",
+				"          radiobase as string,",
+				"          celda as string,",
+				"          latitud as decimal(10,7),",
+				"          longitud as decimal(10,7)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT \\n    rbs_utilizada_b as radiobase, \\n    celda_b as celda, \\n    latitud_b as latitud, \\n    longitud_b as longitud \\nFROM silver.llamadas',",
+				"     format: 'query') ~> LLB",
+				"source(output(",
+				"          radiobase as string,",
+				"          celda as string,",
+				"          latitud as decimal(10,7),",
+				"          longitud as decimal(10,7)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT \\n    rbs_utilizada_a as radiobase, \\n    celda_a as celda, \\n    latitud_a as latitud, \\n    longitud_a as longitud \\nFROM silver.llamadas',",
+				"     format: 'query') ~> LLA",
+				"source1, LLA union(byName: true)~> union1",
+				"union1, LLB union(byName: true)~> union2",
+				"union2 sort(asc(celda, true)) ~> sort1",
+				"sort1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_radiobase as integer,",
+				"          radiobase as string,",
+				"          celda as string,",
+				"          latitud as decimal(10,7),",
+				"          longitud as decimal(10,7)",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          radiobase,",
+				"          celda,",
+				"          latitud,",
+				"          longitud",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
